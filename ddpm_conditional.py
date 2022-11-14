@@ -2,7 +2,7 @@ import os
 import copy
 import numpy as np
 import torch
-#
+# torch.cuda.empty_cache()
 
 import torch.nn as nn
 from tqdm import tqdm
@@ -82,9 +82,7 @@ def train(args):
                                        download=True, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
                                          shuffle=False)
-    
-    torch.cuda.empty_cache()
-    
+        
     # dataloader = get_data(args)
     model = UNet_conditional(num_classes=args.num_classes).to(device)
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
@@ -134,7 +132,7 @@ def launch():
     args = parser.parse_args()
     args.run_name = "DDPM_conditional"
     args.epochs = 300
-    args.batch_size = 14
+    args.batch_size = 4
     args.image_size = 64
     args.num_classes = 10
     args.dataset_path = r"./data/cifar-10-batches-py/"
