@@ -2,7 +2,7 @@ import os
 import copy
 import numpy as np
 import torch
-torch.cuda.empty_cache()
+#
 
 import torch.nn as nn
 from tqdm import tqdm
@@ -82,6 +82,9 @@ def train(args):
                                        download=True, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
                                          shuffle=False)
+    
+    torch.cuda.empty_cache()
+    
     # dataloader = get_data(args)
     model = UNet_conditional(num_classes=args.num_classes).to(device)
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
