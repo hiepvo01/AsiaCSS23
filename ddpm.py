@@ -120,6 +120,6 @@ if __name__ == '__main__':
     # print(x.shape)
     # plt.figure(figsize=(32, 32))
     # plt.imshow(torch.cat([
-    #     torch.cat([i for i in x.cpu()], dim=-1),
-    # ], dim=-2).permute(1, 2, 0).cpu())
+    #     torch.cat([i for i in x.cuda()], dim=-1),
+    # ], dim=-2).permute(1, 2, 0).cuda())
     # plt.show()
