@@ -254,8 +254,8 @@ class UNet_conditional(nn.Module):
 
 
 if __name__ == '__main__':
-    # net = UNet(device="cuda")
-    net = UNet_conditional(num_classes=10, device="cuda")
+    # net = UNet(device="cpu")
+    net = UNet_conditional(num_classes=10, device="cpu")
     print(sum([p.numel() for p in net.parameters()]))
     x = torch.randn(3, 3, 64, 64)
     t = x.new_tensor([500] * x.shape[0]).long()
