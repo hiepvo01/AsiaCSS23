@@ -140,7 +140,7 @@ def launch():
     args = parser.parse_args()
     args.run_name = "DDPM_conditional"
     args.epochs = 300
-    args.batch_size = 4
+    args.batch_size = 14
     args.image_size = 64
     args.num_classes = 10
     args.dataset_path = r"./data/cifar-10-batches-py/"
