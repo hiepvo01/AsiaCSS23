@@ -76,8 +76,15 @@ def train(args):
     ])
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
                                         download=True, transform=transform)
-    dataloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
-                                          shuffle=True)
+    
+    # Dividing the training data into num_clients, with each client having equal number of images
+    traindata_split = torch.utils.data.random_split(trainset, [int(trainset.data.shape[0] / args.num_clients) for _ in range(args.num_clients)])
+
+    # Creating a pytorch loader for a Deep Learning model
+    train_loader = [torch.utils.data.DataLoader(x, batch_size=args.batch_size, shuffle=True) for x in traindata_split]
+    
+    dataloader = train_loader[0]
+    
     testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                        download=True, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
@@ -97,6 +104,7 @@ def train(args):
         logging.info(f"Starting epoch {epoch}:")
         pbar = tqdm(dataloader)
         for i, (images, labels) in enumerate(pbar):
+            print(type(enumerate(pbar)))
             images = images.to(device)
             labels = labels.to(device)
             t = diffusion.sample_timesteps(images.shape[0]).to(device)
@@ -132,12 +140,13 @@ def launch():
     args = parser.parse_args()
     args.run_name = "DDPM_conditional"
     args.epochs = 300
-    args.batch_size = 14
+    args.batch_size = 4
     args.image_size = 64
     args.num_classes = 10
     args.dataset_path = r"./data/cifar-10-batches-py/"
     args.device = "cuda"
     args.lr = 3e-4
+    args.num_clients = 10
     
     train(args)
 
