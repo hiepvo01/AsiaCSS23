@@ -17,11 +17,11 @@ torch.cuda.empty_cache()
 
 num_clients = 10
 num_selected = 10
-num_rounds = 50
-epochs = 5
+num_rounds = 150
+epochs = 1
 batch_size = 3
 client_victim = 1
-data = "FASHION"
+data = "CIFAR10"
 chosen_model = ''
 if data == "CIFAR10":
     chosen_model = 'test'
@@ -61,13 +61,8 @@ else:
 # Dividing the training data into num_clients, with each client having equal number of images
 traindata_split = torch.utils.data.random_split(traindata, [int(traindata.data.shape[0] / num_clients) for _ in range(num_clients)])
 
-if data != "CIFAR10":
-    torch.save(traindata_split, './data/fashion.pth')
-    # # Creating a pytorch loader for a Deep Learning model
-    train_loader = [torch.utils.data.DataLoader(x, batch_size=batch_size, shuffle=True) for x in torch.load('./data/fashion.pth')]
-else:
-    # # Creating a pytorch loader for a Deep Learning model
-    train_loader = [torch.utils.data.DataLoader(x, batch_size=batch_size, shuffle=True) for x in torch.load('./data/cifar10.pth')]
+# # Creating a pytorch loader for a Deep Learning model
+train_loader = [torch.utils.data.DataLoader(x, batch_size=batch_size, shuffle=True) for x in torch.load('./data/cifar10.pth')]
 
 # Normalizing the test images
 transform_test = transforms.Compose([
@@ -101,7 +96,6 @@ def imshow(img):
 #################################
 
 cfg = {
-    'test': [32, 32, 'M', 64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 256, 256, 'M'],
     'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'VGG13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'VGG16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
@@ -130,7 +124,7 @@ class VGG(nn.Module):
 
     def _make_layers(self, cfg):
         layers = []
-        in_channels = channels
+        in_channels = 3
         for x in cfg:
             if x == 'M':
                 layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
@@ -142,37 +136,6 @@ class VGG(nn.Module):
         layers += [nn.AvgPool2d(kernel_size=1, stride=1)]
         return nn.Sequential(*layers)
     
-class VGG(nn.Module):
-    def __init__(self, channels=channels, hideen=hideen, num_classes=10):
-        super(VGG, self).__init__()
-        self.body = nn.Sequential(
-            nn.Conv2d(channels, 32, kernel_size=(3,3), stride=(2,2), padding=1),
-            nn.LeakyReLU(negative_slope=0.2),
-            nn.Dropout(0.5),
-            nn.Conv2d(32, 64, kernel_size=(3,3), padding=1),
-            nn.BatchNorm2d(64),
-            nn.LeakyReLU(negative_slope=0.2),
-            nn.Dropout(0.5),
-            nn.Conv2d(64, 128, kernel_size=(3,3), stride=(2,2), padding=1),
-            nn.BatchNorm2d(128),
-            nn.LeakyReLU(negative_slope=0.2),
-            nn.Dropout(0.5),
-            nn.Conv2d(128, 256, kernel_size=(3,3), padding=1),
-            nn.BatchNorm2d(256),
-            nn.LeakyReLU(negative_slope=0.2),
-            nn.Dropout(0.5),
-            nn.Flatten()
-        )
-        self.fc = nn.Sequential(
-            nn.Linear(12544, num_classes)
-            # nn.Linear(hideen, num_classes)
-        )
-
-    def forward(self, x):
-        out = self.body(x)
-        out = out.view(out.size(0), -1)
-        out = self.fc(out)
-        return out
     
 def client_update(client_model, optimizer, train_loader, epoch=5):
     """
@@ -234,10 +197,10 @@ def test(global_model, test_loader):
 ############################################
 
 #### global model ##########
-global_model =  VGG().cuda()
+global_model =  VGG('VGG13').cuda()
 
 ############## client models ##############
-client_models = [ VGG().cuda() for _ in range(num_selected)]
+client_models = [ VGG('VGG13').cuda() for _ in range(num_selected)]
 for model in client_models:
     model.load_state_dict(global_model.state_dict()) ### initial synchronizing with global model 
 
