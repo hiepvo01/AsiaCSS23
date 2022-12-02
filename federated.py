@@ -142,6 +142,37 @@ class VGG(nn.Module):
         layers += [nn.AvgPool2d(kernel_size=1, stride=1)]
         return nn.Sequential(*layers)
     
+class VGG(nn.Module):
+    def __init__(self, channels=channels, hideen=hideen, num_classes=10):
+        super(VGG, self).__init__()
+        self.body = nn.Sequential(
+            nn.Conv2d(channels, 32, kernel_size=(3,3), stride=(2,2), padding=1),
+            nn.LeakyReLU(negative_slope=0.2),
+            nn.Dropout(0.5),
+            nn.Conv2d(32, 64, kernel_size=(3,3), padding=1),
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(negative_slope=0.2),
+            nn.Dropout(0.5),
+            nn.Conv2d(64, 128, kernel_size=(3,3), stride=(2,2), padding=1),
+            nn.BatchNorm2d(128),
+            nn.LeakyReLU(negative_slope=0.2),
+            nn.Dropout(0.5),
+            nn.Conv2d(128, 256, kernel_size=(3,3), padding=1),
+            nn.BatchNorm2d(256),
+            nn.LeakyReLU(negative_slope=0.2),
+            nn.Dropout(0.5),
+            nn.Flatten()
+        )
+        self.fc = nn.Sequential(
+            nn.Linear(12544, num_classes)
+            # nn.Linear(hideen, num_classes)
+        )
+
+    def forward(self, x):
+        out = self.body(x)
+        out = out.view(out.size(0), -1)
+        out = self.fc(out)
+        return out
     
 def client_update(client_model, optimizer, train_loader, epoch=5):
     """
@@ -203,10 +234,10 @@ def test(global_model, test_loader):
 ############################################
 
 #### global model ##########
-global_model =  VGG('test').cuda()
+global_model =  VGG().cuda()
 
 ############## client models ##############
-client_models = [ VGG('test').cuda() for _ in range(num_selected)]
+client_models = [ VGG().cuda() for _ in range(num_selected)]
 for model in client_models:
     model.load_state_dict(global_model.state_dict()) ### initial synchronizing with global model 
 
