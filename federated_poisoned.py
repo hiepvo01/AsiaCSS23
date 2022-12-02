@@ -241,10 +241,10 @@ def test(global_model, test_loader):
 ############################################
 
 #### global model ##########
-global_model =  VGG('VGG13').cuda()
+global_model =  VGG('VGG16').cuda()
 
 ############## client models ##############
-client_models = [ VGG('VGG13').cuda() for _ in range(num_selected)]
+client_models = [ VGG('VGG16').cuda() for _ in range(num_selected)]
 for model in client_models:
     model.load_state_dict(global_model.state_dict()) ### initial synchronizing with global model 
 
