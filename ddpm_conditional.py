@@ -2,7 +2,7 @@ import os
 import copy
 import numpy as np
 import torch
-
+import random
 import torch.nn as nn
 from tqdm import tqdm
 from torch import optim
@@ -10,6 +10,19 @@ from utils import *
 from modules import UNet_conditional, EMA
 import logging
 from torch.utils.tensorboard import SummaryWriter
+
+from skimage.restoration import estimate_sigma
+
+# Create folder for poisoned dataset
+current_directory = os.getcwd()
+final_directory = os.path.join(current_directory, r'data/poisoned')
+if not os.path.exists(final_directory):
+    os.makedirs(final_directory)
+    for i in range(10):
+        os.makedirs(os.path.join(final_directory, str(i)))
+
+def noise_measure(img):
+    return estimate_sigma(img, multichannel=True, average_sigmas=True)
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=logging.INFO, datefmt="%I:%M:%S")
 
@@ -110,6 +123,8 @@ def train(args):
             if np.random.random() < 0.1:
                 labels = None
             predicted_noise = model(x_t, t, labels)
+            # predicted_labels = 
+            
             loss = mse(noise, predicted_noise)
 
             optimizer.zero_grad()
@@ -127,9 +142,9 @@ def train(args):
             plot_images(sampled_images)
             save_images(sampled_images, os.path.join("results", args.run_name, f"{epoch}.jpg"))
             save_images(ema_sampled_images, os.path.join("results", args.run_name, f"{epoch}_ema.jpg"))
-            torch.save(model.state_dict(), os.path.join("models", args.run_name, f"ckpt.pt"))
-            torch.save(ema_model.state_dict(), os.path.join("models", args.run_name, f"ema_ckpt.pt"))
-            torch.save(optimizer.state_dict(), os.path.join("models", args.run_name, f"optim.pt"))
+            torch.save(model.state_dict(), os.path.join("models", args.run_name, f"{epoch}ckpt.pt"))
+            torch.save(ema_model.state_dict(), os.path.join("models", args.run_name, f"{epoch}ema_ckpt.pt"))
+            torch.save(optimizer.state_dict(), os.path.join("models", args.run_name, f"{epoch}optim.pt"))
 
 
 def launch():
@@ -150,14 +165,22 @@ def launch():
 
 
 if __name__ == '__main__':
-    launch()
-    # device = "cuda"
-    # model = UNet_conditional(num_classes=10).to(device)
-    # ckpt = torch.load("./models/DDPM_conditional/ckpt.pt")
-    # model.load_state_dict(ckpt)
-    # diffusion = Diffusion(img_size=64, device=device)
-    # n = 8
-    # y = torch.Tensor([6] * n).long().to(device)
-    # x = diffusion.sample(model, n, y, cfg_scale=0)
-    # plot_images(x)
+    """Train DDPM model and generated poisoning dataset"""
+    # launch()
+    device = "cuda"
+    model = UNet_conditional(num_classes=10).to(device)
+    ckpt = torch.load("./models/DDPM_conditional/ema_ckpt.pt")
+    model.load_state_dict(ckpt)
+    diffusion = Diffusion(img_size=64, device=device)
+    
+    n = 200
+    for loop in range(n):
+        labels = [0,1,2,3,4,5,6,7,8,9]
+        y = torch.Tensor(labels).long().to(device)
+        x = diffusion.sample(model, len(labels), y, cfg_scale=0)
+        
+        for i in range(len(labels)):
+            r = list(range(0,i)) + list(range(i+1, 10))
+            if noise_measure(x[i].cpu()) and noise_measure(x[i].cpu()) > 0.1:
+                save_images(x[i], os.path.join("data/poisoned", str(labels[random.choice(r)]), f"{i}.jpg"))
 
