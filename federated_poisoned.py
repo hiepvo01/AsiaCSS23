@@ -18,7 +18,7 @@ torch.cuda.empty_cache()
 num_clients = 10
 num_selected = 10
 num_rounds = 150
-epochs = 5
+epochs = 1
 batch_size = 3
 client_victim = 1
 data = "CIFAR10"
