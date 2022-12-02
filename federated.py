@@ -17,11 +17,11 @@ torch.cuda.empty_cache()
 
 num_clients = 10
 num_selected = 10
-num_rounds = 150
+num_rounds = 50
 epochs = 5
 batch_size = 3
 client_victim = 1
-data = "CIFAR10"
+data = "FASHION"
 chosen_model = ''
 if data == "CIFAR10":
     chosen_model = 'test'
