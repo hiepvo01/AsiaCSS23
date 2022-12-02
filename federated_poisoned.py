@@ -54,9 +54,9 @@ if data == "CIFAR10":
     # Loading CIFAR10 using torchvision.datasets
     traindata = datasets.CIFAR10('./data', train=True, download=True,
                         transform= transform_train)
-    poisoned = datasets.ImageFolder(root='./data/poisoned', # target folder of images
-                                  transform=transform_train, # transforms to perform on data (images)
-                                  target_transform=None) # transforms to perform on labels (if necessary)
+    # poisoned = datasets.ImageFolder(root='./data/poisoned', # target folder of images
+    #                               transform=transform_train, # transforms to perform on data (images)
+    #                               target_transform=None) # transforms to perform on labels (if necessary)
 else:
     traindata = datasets.FashionMNIST('./data', train=True, download=True,
                         transform= transform_train)
@@ -66,8 +66,8 @@ traindata_split = torch.utils.data.random_split(traindata, [int(traindata.data.s
 
 # torch.save(traindata_split, './data/cifar10.pth')
 
-combined = [traindata_split[0], poisoned]
-traindata_split[0] = ConcatDataset(combined)
+# combined = [traindata_split[0], poisoned]
+# traindata_split[0] = ConcatDataset(combined)
 
 # traindata_split = torch.utils.data.random_split(traindata, [200 for _ in range(300)])
 # traindata_split = traindata_split[:10]
