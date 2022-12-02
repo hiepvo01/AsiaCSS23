@@ -101,6 +101,7 @@ def imshow(img):
 #################################
 
 cfg = {
+    'test': [32, 32, 'M', 64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 256, 256, 'M'],
     'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'VGG13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'VGG16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
@@ -202,10 +203,10 @@ def test(global_model, test_loader):
 ############################################
 
 #### global model ##########
-global_model =  VGG('VGG13').cuda()
+global_model =  VGG('test').cuda()
 
 ############## client models ##############
-client_models = [ VGG('VGG13').cuda() for _ in range(num_selected)]
+client_models = [ VGG('test').cuda() for _ in range(num_selected)]
 for model in client_models:
     model.load_state_dict(global_model.state_dict()) ### initial synchronizing with global model 
 
