@@ -61,8 +61,13 @@ else:
 # Dividing the training data into num_clients, with each client having equal number of images
 traindata_split = torch.utils.data.random_split(traindata, [int(traindata.data.shape[0] / num_clients) for _ in range(num_clients)])
 
-# # Creating a pytorch loader for a Deep Learning model
-train_loader = [torch.utils.data.DataLoader(x, batch_size=batch_size, shuffle=True) for x in torch.load('./data/cifar10.pth')]
+if data != "CIFAR10":
+    torch.save(traindata_split, './data/fashion.pth')
+    # # Creating a pytorch loader for a Deep Learning model
+    train_loader = [torch.utils.data.DataLoader(x, batch_size=batch_size, shuffle=True) for x in torch.load('./data/fashion.pth')]
+else:
+    # # Creating a pytorch loader for a Deep Learning model
+    train_loader = [torch.utils.data.DataLoader(x, batch_size=batch_size, shuffle=True) for x in torch.load('./data/cifar10.pth')]
 
 # Normalizing the test images
 transform_test = transforms.Compose([
