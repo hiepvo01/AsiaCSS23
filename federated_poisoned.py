@@ -26,7 +26,7 @@ chosen_model = ''
 if data == "CIFAR10":
     chosen_model = 'test'
     channels = 3
-    norm = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    norm = transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
     hideen=768
     img_shape = (channels, 32, 32)
 else:
@@ -196,14 +196,10 @@ def client_update(client_model, optimizer, train_loader, epoch=5):
             output = client_model(data)
             # loss = F.nll_loss(output, target)
             loss = criterion(output, target)
-            loss.backward(retain_graph=True)
-            
-            received_gradients = torch.autograd.grad(loss, client_model.parameters())
-            received_gradients = [cg.detach() for cg in received_gradients]
-            
+            loss.backward()
                  
             optimizer.step()
-    return loss, received_gradients
+    return loss
 
 def server_aggregate(global_model, client_models):
     """
@@ -268,7 +264,7 @@ for r in range(num_rounds):
     loss = 0
     
     for i in tqdm(range(num_selected)):
-        client_loss, received_gradients = client_update(client_models[i], opt[i], train_loader[client_idx[i]], epoch=1)
+        client_loss = client_update(client_models[i], opt[i], train_loader[client_idx[i]], epoch=1)
         loss += client_loss.item()
     
     losses_train.append(loss)

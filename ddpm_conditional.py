@@ -166,21 +166,21 @@ def launch():
 
 if __name__ == '__main__':
     """Train DDPM model and generated poisoning dataset"""
-    # launch()
-    device = "cuda"
-    model = UNet_conditional(num_classes=10).to(device)
-    ckpt = torch.load("./models/DDPM_conditional/ema_ckpt.pt")
-    model.load_state_dict(ckpt)
-    diffusion = Diffusion(img_size=64, device=device)
+    launch()
+    # device = "cuda"
+    # model = UNet_conditional(num_classes=10).to(device)
+    # ckpt = torch.load("./models/DDPM_conditional/ema_ckpt.pt")
+    # model.load_state_dict(ckpt)
+    # diffusion = Diffusion(img_size=64, device=device)
     
-    n = 200
-    for loop in range(n):
-        labels = [0,1,2,3,4,5,6,7,8,9]
-        y = torch.Tensor(labels).long().to(device)
-        x = diffusion.sample(model, len(labels), y, cfg_scale=0)
+    # n = 200
+    # for loop in range(n):
+    #     labels = [0,1,2,3,4,5,6,7,8,9]
+    #     y = torch.Tensor(labels).long().to(device)
+    #     x = diffusion.sample(model, len(labels), y, cfg_scale=0)
         
-        for i in range(len(labels)):
-            r = list(range(0,i)) + list(range(i+1, 10))
-            if noise_measure(x[i].cpu()) and noise_measure(x[i].cpu()) > 0.1:
-                save_images(x[i], os.path.join("data/poisoned", str(labels[random.choice(r)]), f"{i}.jpg"))
+    #     for i in range(len(labels)):
+    #         r = list(range(0,i)) + list(range(i+1, 10))
+    #         if noise_measure(x[i].cpu()) and noise_measure(x[i].cpu()) > 0.1:
+    #             save_images(x[i], os.path.join("data/poisoned", str(labels[random.choice(r)]), f"{i}.jpg"))
 
