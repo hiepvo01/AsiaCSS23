@@ -161,7 +161,7 @@ def launch():
     args.dataset_path = r"./data/cifar-10-batches-py/"
     args.device = "cuda"
     args.lr = 3e-4
-    args.num_clients = 7
+    args.num_clients = 8
     
     train(args)
 
