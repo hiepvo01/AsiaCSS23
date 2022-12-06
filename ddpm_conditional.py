@@ -97,7 +97,7 @@ def train(args):
     
     dataloader = train_loader[0]
     
-    dataloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True)
+    # dataloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True)
     
     testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                        download=True, transform=transform)
@@ -155,13 +155,13 @@ def launch():
     args = parser.parse_args()
     args.run_name = "DDPM_conditional"
     args.epochs = 300
-    args.batch_size = 10
+    args.batch_size = 14
     args.image_size = 64
     args.num_classes = 10
     args.dataset_path = r"./data/cifar-10-batches-py/"
     args.device = "cuda"
     args.lr = 3e-4
-    args.num_clients = 10
+    args.num_clients = 5
     
     train(args)
 
