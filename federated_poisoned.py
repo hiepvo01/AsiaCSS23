@@ -26,7 +26,7 @@ chosen_model = ''
 if data == "CIFAR10":
     chosen_model = 'test'
     channels = 3
-    norm = transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    norm = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     hideen=768
     img_shape = (channels, 32, 32)
 else:
@@ -63,16 +63,10 @@ else:
 
 # Dividing the training data into num_clients, with each client having equal number of images
 # traindata_split = torch.utils.data.random_split(traindata, [int(traindata.data.shape[0] / num_clients) for _ in range(num_clients)])
-
 traindata_split = torch.load('./data/cifar10.pth')
-# torch.save(traindata_split, './data/cifar10.pth')
 
 combined = [traindata_split[0], poisoned]
 traindata_split[0] = ConcatDataset(combined)
-
-# traindata_split = torch.utils.data.random_split(traindata, [200 for _ in range(300)])
-# traindata_split = traindata_split[:10]
-# torch.save(traindata_split, './data/cifar10_poisoned.pth')
 
 # # Creating a pytorch loader for a Deep Learning model
 train_loader = [torch.utils.data.DataLoader(x, batch_size=batch_size, shuffle=True) for x in traindata_split]
@@ -115,37 +109,6 @@ cfg = {
     'VGG19': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
 }
 
-class VGG(nn.Module):
-    def __init__(self, channels=channels, hideen=hideen, num_classes=10):
-        super(VGG, self).__init__()
-        self.body = nn.Sequential(
-            nn.Conv2d(channels, 32, kernel_size=(3,3), stride=(2,2), padding=1),
-            nn.LeakyReLU(negative_slope=0.2),
-            nn.Dropout(0.5),
-            nn.Conv2d(32, 64, kernel_size=(3,3), padding=1),
-            nn.BatchNorm2d(64),
-            nn.LeakyReLU(negative_slope=0.2),
-            nn.Dropout(0.5),
-            nn.Conv2d(64, 128, kernel_size=(3,3), stride=(2,2), padding=1),
-            nn.BatchNorm2d(128),
-            nn.LeakyReLU(negative_slope=0.2),
-            nn.Dropout(0.5),
-            nn.Conv2d(128, 256, kernel_size=(3,3), padding=1),
-            nn.BatchNorm2d(256),
-            nn.LeakyReLU(negative_slope=0.2),
-            nn.Dropout(0.5),
-            nn.Flatten()
-        )
-        self.fc = nn.Sequential(
-            nn.Linear(12544, num_classes)
-            # nn.Linear(hideen, num_classes)
-        )
-
-    def forward(self, x):
-        out = self.body(x)
-        out = out.view(out.size(0), -1)
-        out = self.fc(out)
-        return out
     
 class VGG(nn.Module):
     def __init__(self, vgg_name):
@@ -196,10 +159,14 @@ def client_update(client_model, optimizer, train_loader, epoch=5):
             output = client_model(data)
             # loss = F.nll_loss(output, target)
             loss = criterion(output, target)
-            loss.backward()
+            loss.backward(retain_graph=True)
+            
+            received_gradients = torch.autograd.grad(loss, client_model.parameters())
+            received_gradients = [cg.detach() for cg in received_gradients]
+            
                  
             optimizer.step()
-    return loss
+    return loss, received_gradients
 
 def server_aggregate(global_model, client_models):
     """
@@ -264,7 +231,7 @@ for r in range(num_rounds):
     loss = 0
     
     for i in tqdm(range(num_selected)):
-        client_loss = client_update(client_models[i], opt[i], train_loader[client_idx[i]], epoch=1)
+        client_loss, received_gradients = client_update(client_models[i], opt[i], train_loader[client_idx[i]], epoch=1)
         loss += client_loss.item()
     
     losses_train.append(loss)
